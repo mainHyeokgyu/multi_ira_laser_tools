@@ -74,7 +74,7 @@ LaserscanMerger::LaserscanMerger() : Node("laserscan_multi_merger")
 	this->declare_parameter("scan_time", 0.0);
 	this->declare_parameter("range_min", 0.0);
 	this->declare_parameter("range_max", 25.0);
-	this->declare_parameter<std::string>("robot_namespace", "");
+	this->declare_parameter<std::string>("robot_namespace", "");	// Get the parameter of robot's namespace
 
 	this->get_parameter("destination_frame", destination_frame);
 	this->get_parameter("cloud_destination_topic", cloud_destination_topic);
@@ -91,9 +91,9 @@ LaserscanMerger::LaserscanMerger() : Node("laserscan_multi_merger")
 	//=============================================================
 	std::string cloud_dest_topic = cloud_destination_topic.c_str();
 	std::string scan_dest_topic = scan_destination_topic.c_str();
-	std::string robot_ns = robot_namespace.c_str();
-	std::string cloud_topic_ns = robot_ns + cloud_dest_topic;
-	std::string scan_topic_ns = robot_ns + scan_dest_topic;
+	std::string robot_ns = robot_namespace.c_str();					// can specify in launch file
+	std::string cloud_topic_ns = robot_ns + cloud_dest_topic;		// Add namespace in front of the cloud destination topic
+	std::string scan_topic_ns = robot_ns + scan_dest_topic;			// Add namespace in front of the scan destination topic
 	//=============================================================
 
 	param_callback_handle_ = this->add_on_set_parameters_callback(
@@ -161,20 +161,21 @@ void LaserscanMerger::laserscan_topic_parser()
 {
 	// LaserScan topics to subscribe
 	std::map<std::string, std::vector<std::string>> topics;
-	std::string robot_ns = robot_namespace.c_str();
+	std::string robot_ns = robot_namespace.c_str();		// can specify in launch file
 
 	istringstream iss(laserscan_topics);
 	set<string> tokens;
 	copy(istream_iterator<string>(iss), istream_iterator<string>(), inserter<set<string>>(tokens, tokens.begin()));
 
-	set<string> ns_scan_topics;
+	set<string> ns_scan_topics;							// Set of input topics with namespace added
 	
-	// Add namespace in front of the topic name
+	// =======Add namespace in front of the topic name=======
 	for (const auto& token : tokens) {
 		std::string temp_laserscan_topic = token;
 		std::string temp_ns_scan_topic = robot_ns + temp_laserscan_topic;
 		ns_scan_topics.insert(temp_ns_scan_topic);
 	}
+	// ======================================================
 
 	std::vector<string> tmp_input_topics;
 	while (!ns_scan_topics.empty())
@@ -216,8 +217,6 @@ void LaserscanMerger::laserscan_topic_parser()
 								&LaserscanMerger::scanCallback,
 								this, std::placeholders::_1, input_topics[i]);
 				scan_subscribers[i] = this->create_subscription<sensor_msgs::msg::LaserScan>(input_topics[i].c_str(), rclcpp::SensorDataQoS(), callback);
-				// std::cout<<"===================="<<std::endl;
-				// std::cout<<"input_topics["<<i<<"]: "<<input_topics[i].c_str()<<std::endl;
 				clouds_modified[i] = false;
 				std::cout<<input_topics[i]<<" "<<std::endl;
 			}
