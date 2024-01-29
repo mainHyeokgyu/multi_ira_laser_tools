@@ -89,11 +89,11 @@ LaserscanMerger::LaserscanMerger() : Node("laserscan_multi_merger")
 	this->get_parameter("robot_namespace", robot_namespace);
 
 	//=============================================================
-	std::string cloud_dest_topic = cloud_destination_topic.c_str();
-	std::string scan_dest_topic = scan_destination_topic.c_str();
-	std::string robot_ns = "/" + std::string(robot_namespace.c_str());					// can specify in launch file
-	std::string cloud_topic_ns = robot_ns + cloud_dest_topic;		// Add namespace in front of the cloud destination topic
-	std::string scan_topic_ns = robot_ns + scan_dest_topic;			// Add namespace in front of the scan destination topic
+	// std::string cloud_dest_topic = cloud_destination_topic.c_str();
+	// std::string scan_dest_topic = scan_destination_topic.c_str();
+	// std::string robot_ns = "/" + std::string(robot_namespace.c_str());					// can specify in launch file
+	// std::string cloud_topic_ns = robot_ns + cloud_dest_topic;		// Add namespace in front of the cloud destination topic
+	// std::string scan_topic_ns = robot_ns + scan_dest_topic;			// Add namespace in front of the scan destination topic
 	//=============================================================
 
 	param_callback_handle_ = this->add_on_set_parameters_callback(
@@ -104,8 +104,8 @@ LaserscanMerger::LaserscanMerger() : Node("laserscan_multi_merger")
 
 	this->laserscan_topic_parser();
 
-	point_cloud_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(cloud_topic_ns, rclcpp::SensorDataQoS());
-	laser_scan_publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>(scan_topic_ns, rclcpp::SensorDataQoS());
+	point_cloud_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(cloud_destination_topic.c_str(), rclcpp::SensorDataQoS());
+	laser_scan_publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>(scan_destination_topic.c_str(), rclcpp::SensorDataQoS());
 }
 
 rcl_interfaces::msg::SetParametersResult LaserscanMerger::reconfigureCallback(const std::vector<rclcpp::Parameter> &parameters)
@@ -161,7 +161,7 @@ void LaserscanMerger::laserscan_topic_parser()
 {
 	// LaserScan topics to subscribe
 	std::map<std::string, std::vector<std::string>> topics;
-	std::string robot_ns = "/" + std::string(robot_namespace.c_str());		// can specify in launch file
+	// std::string robot_ns = "/" + std::string(robot_namespace.c_str());		// can specify in launch file
 
 	istringstream iss(laserscan_topics);
 	set<string> tokens;
@@ -170,15 +170,15 @@ void LaserscanMerger::laserscan_topic_parser()
 	set<string> ns_scan_topics;							// Set of input topics with namespace added
 	
 	// =======Add namespace in front of the topic name=======
-	for (const auto& token : tokens) {
-		std::string temp_laserscan_topic = token;
-		std::string temp_ns_scan_topic = robot_ns + temp_laserscan_topic;
-		ns_scan_topics.insert(temp_ns_scan_topic);
-	}
+	// for (const auto& token : tokens) {
+	// 	std::string temp_laserscan_topic = token;
+	// 	std::string temp_ns_scan_topic = robot_ns + temp_laserscan_topic;
+	// 	ns_scan_topics.insert(temp_ns_scan_topic);
+	// }
 	// ======================================================
 
 	std::vector<string> tmp_input_topics;
-	while (!ns_scan_topics.empty())
+	while (!tokens.empty())
 	{
 		RCLCPP_INFO(this->get_logger(), "Waiting for topics ...");
 		sleep(1);
@@ -187,7 +187,7 @@ void LaserscanMerger::laserscan_topic_parser()
 		for (const auto &topic_it : topics)
 		{
 			std::vector<std::string> topic_types = topic_it.second;
-			if (std::find(topic_types.begin(), topic_types.end(), "sensor_msgs/msg/LaserScan") != topic_types.end() && ns_scan_topics.erase(topic_it.first) > 0)
+			if (std::find(topic_types.begin(), topic_types.end(), "sensor_msgs/msg/LaserScan") != topic_types.end() && tokens.erase(topic_it.first) > 0)
 			{
 				tmp_input_topics.push_back(topic_it.first);
 			}
