@@ -91,7 +91,7 @@ LaserscanMerger::LaserscanMerger() : Node("laserscan_multi_merger")
 	//=============================================================
 	std::string cloud_dest_topic = cloud_destination_topic.c_str();
 	std::string scan_dest_topic = scan_destination_topic.c_str();
-	std::string robot_ns = robot_namespace.c_str();					// can specify in launch file
+	std::string robot_ns = "/" + std::string(robot_namespace.c_str());					// can specify in launch file
 	std::string cloud_topic_ns = robot_ns + cloud_dest_topic;		// Add namespace in front of the cloud destination topic
 	std::string scan_topic_ns = robot_ns + scan_dest_topic;			// Add namespace in front of the scan destination topic
 	//=============================================================
@@ -161,7 +161,7 @@ void LaserscanMerger::laserscan_topic_parser()
 {
 	// LaserScan topics to subscribe
 	std::map<std::string, std::vector<std::string>> topics;
-	std::string robot_ns = robot_namespace.c_str();		// can specify in launch file
+	std::string robot_ns = "/" + std::string(robot_namespace.c_str());		// can specify in launch file
 
 	istringstream iss(laserscan_topics);
 	set<string> tokens;
