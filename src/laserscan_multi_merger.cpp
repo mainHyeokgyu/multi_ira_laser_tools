@@ -232,15 +232,18 @@ void LaserscanMerger::scanCallback(sensor_msgs::msg::LaserScan::SharedPtr scan, 
 {
 	sensor_msgs::msg::PointCloud2 tmpCloud1, tmpCloud2;
 
+	std::string robot_ns = std::string(robot_namespace.c_str()) + "/";		// can specify in launch file
+	std::string destination_frame_ns = robot_ns + destination_frame.c_str(); // destination frame is <namespace>/base_link
+
 	try
 	{
 		// Verify that TF knows how to transform from the received scan to the destination scan frame
-		tf_buffer_->lookupTransform(scan->header.frame_id.c_str(), destination_frame.c_str(), scan->header.stamp, rclcpp::Duration(1, 0));
-		projector_.transformLaserScanToPointCloud(scan->header.frame_id, *scan, tmpCloud1, *tf_buffer_, range_max);
-		pcl_ros::transformPointCloud(destination_frame.c_str(), tmpCloud1, tmpCloud2, *tf_buffer_);
+		tf_buffer_->lookupTransform(scan->header.frame_id.c_str(), destination_frame_ns, scan->header.stamp, rclcpp::Duration(1, 0));
+		projector_.transformLaserScanToPointCloud(scan->header.frame_id.c_str(), *scan, tmpCloud1, *tf_buffer_, range_max);
+		pcl_ros::transformPointCloud(destination_frame_ns, tmpCloud1, tmpCloud2, *tf_buffer_);
 	}
 	catch (tf2::TransformException &ex)
-	{
+	{	
 		return;
 	}
 
